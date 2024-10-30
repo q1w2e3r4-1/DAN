@@ -16,13 +16,16 @@ def generate_mod_LR_bic():
     up_scale = 4
     mod_scale = 4
     # set data dir
-    sourcedir = "/data/Set5/source/"
-    savedir = "/data/Set5/"
+    # sourcedir = "../../data/gong1024/gong1024"
+    # savedir = "../../data/gong1024/"
+
+    sourcedir = "../../data/chase256/chase256"
+    savedir = "../../data/chase256/"
 
     # load PCA matrix of enough kernel
     print("load PCA matrix")
     pca_matrix = torch.load(
-        "../../pca_matrix.pth", map_location=lambda storage, loc: storage
+        "../../pca_matrix/DANv1/pca_aniso_matrix_x4.pth", map_location=lambda storage, loc: storage
     )
     print("PCA matrix shape: {}".format(pca_matrix.shape))
 
@@ -33,7 +36,7 @@ def generate_mod_LR_bic():
         "pca_matrix": pca_matrix,
         "scale": up_scale,
         "cuda": True,
-        "rate_iso", 1.0
+        "rate_iso": 1.0
     }
 
     # set random seed
@@ -81,7 +84,7 @@ def generate_mod_LR_bic():
 
     filepaths = sorted([f for f in os.listdir(sourcedir) if f.endswith(".png")])
     print(filepaths)
-    num_files = len(filepaths)
+    num_files = min(100,len(filepaths))
 
     # kernel_map_tensor = torch.zeros((num_files, 1, 10)) # each kernel map: 1*10
 

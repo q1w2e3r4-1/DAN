@@ -83,10 +83,35 @@ def main():
 
     ###### Predictor&Corrector train ######
 
+    print("!!!!!!!!!!!!!!!!!!!!!", torch.cuda.current_device())
+
+    gpu_list = "2,3"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = gpu_list
+    # print("export CUDA_VISIBLE_DEVICES=" + gpu_list)
+    if torch.cuda.is_available():
+        # 获取当前操作的GPU设备的索引
+        current_device_index = torch.cuda.current_device()
+        print(f"Current device index: {current_device_index}")  # 应该打印 0
+
+        # 获取当前操作的GPU设备的名称
+        current_device_name = torch.cuda.get_device_name(current_device_index)
+        print(f"Current device name: {current_device_name}")
+
+        # 获取可见的GPU数量
+        num_visible_gpus = torch.cuda.device_count()
+        print(f"Number of visible GPUs: {num_visible_gpus}")  # 应该打印 2
+
+        # 遍历所有可见的GPU设备
+        for i in range(num_visible_gpus):
+            print(f"Visible GPU {i} (actual GPU {int(gpu_list.split(',')[i])}): {torch.cuda.get_device_name(i)}")
+    else:
+        print("CUDA is not available")
+
     #### loading resume state if exists
     if opt["path"].get("resume_state", None):
         # distributed resuming: all load into default GPU
         device_id = torch.cuda.current_device()
+        print("resuming", device_id)
         resume_state = torch.load(
             opt["path"]["resume_state"],
             map_location=lambda storage, loc: storage.cuda(device_id),
@@ -223,6 +248,7 @@ def main():
     logger.info(
         "Start training from epoch: {:d}, iter: {:d}".format(start_epoch, current_step)
     )
+    print("logger")
     for epoch in range(start_epoch, total_epochs + 1):
         if opt["dist"]:
             train_sampler.set_epoch(epoch)
@@ -247,6 +273,7 @@ def main():
                 message = "<epoch:{:3d}, iter:{:8,d}, lr:{:.3e}> ".format(
                     epoch, current_step, model.get_current_learning_rate()
                 )
+                print(message)
                 for k, v in logs.items():
                     message += "{:s}: {:.4e} ".format(k, v)
                     # tensorboard logger
@@ -315,6 +342,10 @@ def main():
                         epoch, current_step, avg_psnr
                     )
                 )
+                print("# Validation # PSNR: {:.6f}".format(avg_psnr))
+                print("<epoch:{:3d}, iter:{:8,d}, psnr: {:.6f}".format(
+                        epoch, current_step, avg_psnr
+                    ))
                 # tensorboard logger
                 if opt["use_tb_logger"] and "debug" not in opt["name"]:
                     tb_logger.add_scalar("psnr", avg_psnr, current_step)
@@ -323,6 +354,7 @@ def main():
             if current_step % opt["logger"]["save_checkpoint_freq"] == 0:
                 if rank <= 0:
                     logger.info("Saving models and training states.")
+                    print("Saving models and training states.")
                     model.save(current_step)
                     model.save_training_state(epoch, current_step)
 

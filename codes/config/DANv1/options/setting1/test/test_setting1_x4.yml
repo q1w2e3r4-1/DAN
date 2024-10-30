@@ -46,4 +46,4 @@ network_G:
 
 #### path
 path:
-  pretrain_model_G: ../../../checkpoints/DANv1/danv1_x4_setting1.pth
+  pretrain_model_G: ../../../checkpoints/DANv1/danv1_x4_setting1.pth # change here
